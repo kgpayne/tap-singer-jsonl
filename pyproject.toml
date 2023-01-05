@@ -1,11 +1,15 @@
 [tool.poetry]
 name = "tap-singer-jsonl"
-version = "0.1.0"
-description = ""
+version = "0.0.0"
+description = "A Singer.io tap fro reading raw singer-formatted JSONL files from local and remote sources (e.g. s3)."
 authors = ["Ken Payne <ken@meltano.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "tap_singer_jsonl"}]
+keywords = [
+    "ELT",
+    "Singer.io",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
@@ -13,10 +17,15 @@ singer-sdk = "^0.16.0"
 smart-open = {extras = ["s3"], version = "^6.3.0"}
 
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry.scripts]
 # CLI declaration
 tap-singer-jsonl = 'tap_singer_jsonl:main'
+
+[build-system]
+requires = ["poetry-core>=1.0.8", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
