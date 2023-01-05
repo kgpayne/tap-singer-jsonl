@@ -11,6 +11,14 @@
       "module": "tap_singer_jsonl.__init__",
       "justMyCode": true,
       "args": ["--config", ".secret/config.json", "--discover"]
+    },
+    {
+      "name": "run",
+      "type": "python",
+      "request": "launch",
+      "module": "tap_singer_jsonl.__init__",
+      "justMyCode": true,
+      "args": ["--config", ".secret/config.json"]
     }
   ]
 }
