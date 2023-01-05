@@ -2,17 +2,24 @@
 import json
 import logging
 import sys
+from pathlib import Path
 
 from singer_sdk._singerlib import Catalog
-from smart_open import open
+from smart_open.smart_open_lib import patch_pathlib
 
-from .utils import get_local_file_paths, parse_args
+from .utils import get_file_lines, get_schema_messages, parse_args
+
+_ = patch_pathlib()  # replace `Path.open` with `smart_open.open`
+
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 logger = logging.getLogger(__name__)
 
-files = {
+example_config = {
+    "source": "local",
     "local": {
         "folders": [".secrets/test_input/"],
+        "recursive": True,
         "paths": ["file://absolute_file/path/stream.jsonl"],
     },
     "s3": {
@@ -25,31 +32,10 @@ files = {
 REQUIRED_CONFIG_KEYS = []
 
 
-def extract_schema_messages(file_path):
-    schema_messages = []
-    for line in open(file_path):
-        logger.info(f"Found file {file_path}")
-        try:
-            line_dict = json.loads(line)
-        except json.decoder.JSONDecodeError as exc:
-            logger.error("Unable to parse:\n%s", line, exc_info=exc)
-            raise
+def load_streams(source, config):
+    """Load streams from read files."""
 
-        if line_dict["type"] == "SCHEMA":
-            schema_messages.append(line_dict)
-    return schema_messages
-
-
-def load_streams(config):
-    """Load schemas from schemas folder"""
-    schema_messages = []
-    paths = []
-
-    if "local" in config:
-        paths.extend(get_local_file_paths(config["local"]))
-
-    for path in paths:
-        schema_messages.extend(extract_schema_messages(path))
+    schema_messages = get_schema_messages(source=source, config=config)
 
     # load via a dictionary to dedupe streams when multiple schema messages are read
     schema = {
@@ -65,18 +51,18 @@ def load_streams(config):
 
 
 def discover(config):
-    streams = load_streams(config)
+    source = config.get("source", "local")
+    streams = load_streams(source, config[source])
     return Catalog.from_dict(streams)
 
 
 def sync(config, state, catalog):
     """Sync data from tap source"""
-    # Loop over files in config
-    if "files" in config:
-        for file_path in config["files"]:
-            for line in open(file_path):
-                sys.stdout.write(line)
-                sys.stdout.flush()
+    source = config.get("source", "local")
+    # Loop over discovered files
+    for line in get_file_lines(source=source, config=config[source]):
+        sys.stdout.write(line)
+        sys.stdout.flush()
 
 
 def main():
