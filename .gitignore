@@ -1,4 +1,6 @@
 .secret
+.meltano
+plugins
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
