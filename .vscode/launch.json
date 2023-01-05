@@ -10,7 +10,7 @@
       "request": "launch",
       "module": "tap_singer_jsonl.__init__",
       "justMyCode": true,
-      "args": ["--config", ".secret/config.json", "--discover"]
+      "args": ["--config", ".secrets/config.json", "--discover"]
     },
     {
       "name": "run",
@@ -18,7 +18,7 @@
       "request": "launch",
       "module": "tap_singer_jsonl.__init__",
       "justMyCode": true,
-      "args": ["--config", ".secret/config.json"]
+      "args": ["--config", ".secrets/config.json"]
     }
   ]
 }
