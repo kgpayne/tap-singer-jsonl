@@ -1,9 +1,9 @@
 import argparse
 import fnmatch
 import gzip
-import io
 import json
 import logging
+import ntpath
 import sys
 from pathlib import Path
 
@@ -28,7 +28,10 @@ def get_local_file_lines(config):
     paths = get_local_file_paths(config)
     for file_path in paths:
         logger.info(f"Reading file: {file_path}")
-        yield from file_path.open("r", encoding="utf-8")
+        for count, line in enumerate(file_path.open("r", encoding="utf-8")):
+            file_name = ntpath.basename(str(file_path))
+            row_number = count + 1
+            yield (file_name, row_number, line)
 
 
 def get_local_file_paths(config):
@@ -60,12 +63,15 @@ def get_s3_file_lines(config):
         logger.info(f"Reading S3 key: {key}")
         if key.endswith(".gz"):
             content = gzip.decompress(content)
-        yield from content.decode("utf-8").splitlines(keepends=True)
+        for count, line in enumerate(content.decode("utf-8").splitlines(keepends=True)):
+            file_name = ntpath.basename(str(key))
+            row_number = count + 1
+            yield (file_name, row_number, line)
 
 
 def extract_schema_messages(lines):
     schema_messages = []
-    for line in lines:
+    for _, _, line in lines:
         try:
             line_dict = json.loads(line)
         except json.decoder.JSONDecodeError as exc:

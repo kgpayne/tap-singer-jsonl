@@ -27,6 +27,7 @@ example_config = {
         "prefix": "/singer/streams/",
         "paths": ["s3://example_s3_path.jsonl"],
     },
+    "add_record_metadata": False,
 }
 
 REQUIRED_CONFIG_KEYS = []
@@ -59,9 +60,47 @@ def discover(config):
 def sync(config, state, catalog):
     """Sync data from tap source"""
     source = config.get("source", "local")
+    add_record_metadata = config.get("add_record_metadata", True)
     # Loop over discovered files
-    for line in get_file_lines(source=source, config=config[source]):
-        sys.stdout.write(line)
+    for file_name, row_number, line in get_file_lines(
+        source=source, config=config[source]
+    ):
+        try:
+            message = json.loads(line)
+        except json.decoder.JSONDecodeError:
+            logger.error(f"Unable to parse:\n{line}")
+            raise
+
+        if "type" not in message:
+            raise Exception(f"Line is missing required key 'type': {line}")
+        t = message["type"]
+
+        if t != "STATE" and "stream" not in message:
+            raise Exception(f"Line is missing required key 'stream': {line}")
+
+        if t == "RECORD":
+            if add_record_metadata:
+                record = message["record"]
+                record.update(
+                    {"_sdc_source_file": file_name, "_sdc_source_lineno": row_number}
+                )
+            sys.stdout.write(json.dumps(message) + "\n")
+
+        elif t == "SCHEMA":
+            if add_record_metadata:
+                schema = message["schema"]
+                properties_dict = schema["properties"]
+                properties_dict["_sdc_source_file"] = {
+                    "type": ["string"],
+                }
+                properties_dict["_sdc_source_lineno"] = {
+                    "type": ["integer"],
+                }
+            sys.stdout.write(json.dumps(message) + "\n")
+
+        else:
+            sys.stdout.write(line)
+
         sys.stdout.flush()
 
 
