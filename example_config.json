@@ -1,6 +1,6 @@
 {
   "local": {
     "paths": ["file:///Users/admin/home/records.jsonl"],
-    "folders": [".secret/test_input/"]
+    "folders": [".secrets/test_input/"]
   }
 }
