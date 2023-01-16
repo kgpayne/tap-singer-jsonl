@@ -61,10 +61,10 @@ def get_s3_file_lines(config):
         bucket, prefix=prefix, accept_key=lambda key: fnmatch.fnmatch(key, "*.singer*")
     ):
         logger.info(f"Reading S3 key: {key}")
+        file_name = ntpath.basename(str(key))
         if key.endswith(".gz"):
             content = gzip.decompress(content)
         for count, line in enumerate(content.decode("utf-8").splitlines(keepends=True)):
-            file_name = ntpath.basename(str(key))
             row_number = count + 1
             yield (file_name, row_number, line)
 
