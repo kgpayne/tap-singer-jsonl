@@ -6,8 +6,6 @@ spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md), from JS
 The tap expects one Singer message (`SCHEMA`, `RECORD` etc.) per line.
 More information about the Singer Spec is available on the Meltano Hub [here](https://hub.meltano.com/singer/spec/).
 
-# Usage
-
 ## Installation
 
 ```shell
