@@ -35,7 +35,7 @@ def get_local_file_lines(config):
 
 
 def get_local_file_paths(config):
-    paths = config.get("paths", [])
+    paths = [Path(path) for path in config.get("paths", [])]
     recursive = config.get("recursive", False)
     if "folders" in config:
         for folder in config["folders"]:
